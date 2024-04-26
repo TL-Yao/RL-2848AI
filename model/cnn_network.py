@@ -4,7 +4,15 @@ from typing import Union
 
 
 class CNNNetwork(tf.keras.Model):
-    def __init__(self, grid_size, action_size, learning_rate, *args, **kwargs):
+    def __init__(
+        self,
+        grid_size,
+        action_size,
+        learning_rate,
+        regularization_factor,
+        *args,
+        **kwargs
+    ):
         super(CNNNetwork, self).__init__()
         # initialize model with 6 layers
         # input layer: (4, 4, 1) represent a (4,4) board and channel 1
@@ -14,30 +22,55 @@ class CNNNetwork(tf.keras.Model):
         # layer3 Full Connect: 512 neurons, ReLU activation
         # layer4 Full Connect: 128 neurons, ReLU activation
         # output layer: 4 neurons (action 0,1,2,3), linear activation
-        self.conv_1 = tf.keras.layers.Conv2D(
-            32,
-            (3, 3),
-            activation="relu",
-            strides=1,
-            padding="same",
-            input_shape=(grid_size, grid_size, 1),
+        self.model = tf.keras.Sequential(
+            [
+                tf.keras.layers.Conv2D(
+                    32,
+                    (3, 3),
+                    kernel_regularizer=tf.keras.regularizers.l2(regularization_factor),
+                    bias_regularizer=tf.keras.regularizers.l2(regularization_factor),
+                    activation="relu",
+                    padding="same",
+                    input_shape=(1, grid_size, grid_size),
+                ),
+                # tf.keras.layers.BatchNormalization(),
+                tf.keras.layers.Conv2D(
+                    64,
+                    (3, 3),
+                    kernel_regularizer=tf.keras.regularizers.l2(regularization_factor),
+                    bias_regularizer=tf.keras.regularizers.l2(regularization_factor),
+                    activation="relu",
+                    padding="same",
+                ),
+                # tf.keras.layers.BatchNormalization(),
+                tf.keras.layers.Flatten(),
+                tf.keras.layers.Dense(
+                    512,
+                    activation="relu",
+                    kernel_regularizer=tf.keras.regularizers.l2(regularization_factor),
+                    bias_regularizer=tf.keras.regularizers.l2(regularization_factor),
+                ),
+                # tf.keras.layers.BatchNormalization(),
+                tf.keras.layers.Dense(
+                    128,
+                    activation="relu",
+                    kernel_regularizer=tf.keras.regularizers.l2(regularization_factor),
+                    bias_regularizer=tf.keras.regularizers.l2(regularization_factor),
+                ),
+                # tf.keras.layers.BatchNormalization(),
+                tf.keras.layers.Dense(
+                    action_size,
+                    activation="linear",
+                    kernel_regularizer=tf.keras.regularizers.l2(regularization_factor),
+                    bias_regularizer=tf.keras.regularizers.l2(regularization_factor),
+                ),
+            ]
         )
-        self.conv_2 = tf.keras.layers.Conv2D(
-            64, (3, 3), activation="relu", strides=1, padding="same"
-        )
-        self.flatten = tf.keras.layers.Flatten()
-        self.fc_1 = tf.keras.layers.Dense(512, activation="relu")
-        self.fc_2 = tf.keras.layers.Dense(128, activation="relu")
-        self.fc_3 = tf.keras.layers.Dense(action_size, activation="linear")
-        self._loss = tf.keras.losses.mean_squared_error
-        self._optimizer = tf.keras.optimizers.legacy.Adam(learning_rate=learning_rate)
 
-        self.compile(optimizer=self._optimizer, loss=self._loss)
+        self.loss = tf.keras.losses.mean_absolute_error
+        self.optimizer = tf.keras.optimizers.legacy.Adam(learning_rate=learning_rate)
+
+        self.compile(optimizer=self.optimizer, loss=self.loss)
 
     def call(self, inputs, training=None, mask=None):
-        conv1_output = self.conv_1(inputs)
-        conv2_output = self.conv_2(conv1_output)
-        flat_output = self.flatten(conv2_output)
-        fc1_output = self.fc_1(flat_output)
-        fc2_output = self.fc_2(fc1_output)
-        return self.fc_3(fc2_output)
+        return self.model(inputs, training=training)

@@ -1,4 +1,3 @@
-
 def get_average(logs, episodes_interval):
     grouped_data = {}
     for episode, score, move, loss in logs:
@@ -13,7 +12,9 @@ def get_average(logs, episodes_interval):
         avg_score = sum(scores) / len(scores)
         avg_move = sum(moves) / len(moves)
         avg_loss = sum(losses) / len(losses)
-        averages.append((group_key * episodes_interval + 1, avg_score, avg_move, avg_loss))
+        averages.append(
+            (group_key * episodes_interval + 1, avg_score, avg_move, avg_loss)
+        )
 
     for average in averages:
         episode, avg_score, avg_move, avg_loss = average

@@ -10,26 +10,26 @@ class Renderer:
         self.game_over_font = None
         self.colors = {
             0: (204, 192, 179),
-            1: (238, 228, 218),
-            2: (237, 224, 200),
-            3: (242, 177, 121),
-            4: (245, 149, 99),
-            5: (246, 124, 95),
-            6: (246, 94, 59),
-            7: (237, 207, 114),
-            8: (237, 204, 97),
-            9: (237, 200, 80),
-            10: (237, 197, 63),
-            11: (237, 194, 46),
-            12: (93, 218, 216),
-            13: (60, 131, 238),
-            14: (0, 0, 238),
-            15: (128, 0, 128),
-            16: (81, 0, 81),
-            17: (0, 0, 0),
+            2: (238, 228, 218),
+            4: (237, 224, 200),
+            6: (242, 177, 121),
+            8: (245, 149, 99),
+            16: (246, 124, 95),
+            32: (246, 94, 59),
+            64: (237, 207, 114),
+            128: (237, 204, 97),
+            256: (237, 200, 80),
+            512: (237, 197, 63),
+            1024: (237, 194, 46),
+            2048: (93, 218, 216),
+            4096: (60, 131, 238),
+            8192: (0, 0, 238),
+            16384: (128, 0, 128),
+            32768: (81, 0, 81),
+            65536: (0, 0, 0),
         }
 
-    def render(self, board, score, illegal_move, move, end):
+    def render(self, board, score, move, end):
         if self.screen is None:
             pygame.init()
             self.screen = pygame.display.set_mode(
@@ -69,7 +69,7 @@ class Renderer:
             for j in range(4):
                 value = board[i][j]
                 if value > 0:
-                    color = self.colors[int(value * 16)]
+                    color = self.colors[value]
                     pygame.draw.rect(
                         self.screen,
                         color,
@@ -80,7 +80,7 @@ class Renderer:
                             self.grid_size - 10,
                         ),
                     )
-                    value_str = str(2 ** (int(value * 16)))
+                    value_str = str(value)
                     text = self.font.render(value_str, True, (0, 0, 0))
                     text_rect = text.get_rect(
                         center=(
@@ -100,9 +100,9 @@ class Renderer:
         text_rect = text.get_rect(topleft=(20, text_y + 40))
         self.screen.blit(text, text_rect)
 
-        text = self.font.render(f"Illegal Move: {illegal_move}", True, (0, 0, 0))
-        text_rect = text.get_rect(topleft=(20, text_y + 80))
-        self.screen.blit(text, text_rect)
+        # text = self.font.render(f"Illegal Move: {illegal_move}", True, (0, 0, 0))
+        # text_rect = text.get_rect(topleft=(20, text_y + 80))
+        # self.screen.blit(text, text_rect)
 
         if end:
             overlay = pygame.Surface(
